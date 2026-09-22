@@ -5,6 +5,7 @@ import threading
 from datetime import datetime, timedelta, timezone
 
 import feedparser
+from deep_translator import GoogleTranslator
 from flask import Flask
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
@@ -30,9 +31,9 @@ RSS_FEEDS = {
 }
 
 # ---- Настройки ----
-MAX_POSTS_PER_RUN = 3   # сколько новостей за один цикл
-FRESH_HOURS = 24        # свежесть: только новости за последние N часов
-POST_INTERVAL_MINUTES = 60  # раз в час
+MAX_POSTS_PER_RUN = 3
+FRESH_HOURS = 24
+POST_INTERVAL_MINUTES = 60
 
 app = Flask(__name__)
 seen_urls = set()
@@ -52,6 +53,17 @@ def clean_html(text: str) -> str:
     text = re.sub(r"<[^>]+>", "", text)
     text = re.sub(r"\s+", " ", text).strip()
     return text
+
+
+def translate_to_russian(text: str) -> str:
+    """Переводит текст на русский. Если не удалось — возвращает оригинал."""
+    if not text:
+        return text
+    try:
+        return GoogleTranslator(source="auto", target="ru").translate(text=text)
+    except Exception as e:
+        print(f"Ошибка перевода: {e}", flush=True)
+        return text
 
 
 def fetch_fresh_items():
@@ -103,10 +115,14 @@ async def post_news(bot: Bot):
     print(f"Найдено {len(items)} свежих, публикую {len(posts)}", flush=True)
 
     for item in posts:
+        # Переводим заголовок и описание на русский
+        title_ru = translate_to_russian(item["title"])
+        summary_ru = translate_to_russian(item["summary"])
+
         text = (
             f"🤖 <b>{item['source']}</b>\n\n"
-            f"<b>{item['title']}</b>\n\n"
-            f"{item['summary']}\n\n"
+            f"<b>{title_ru}</b>\n\n"
+            f"{summary_ru}\n\n"
             f'🔗 <a href="{item["link"]}">Читать полностью</a>'
         )
         try:
@@ -117,7 +133,7 @@ async def post_news(bot: Bot):
                 disable_web_page_preview=True,
             )
             seen_urls.add(item["link"])
-            print(f"Опубликовано: {item['title'][:60]}", flush=True)
+            print(f"Опубликовано: {title_ru[:60]}", flush=True)
         except Exception as e:
             print(f"Ошибка отправки: {e}", flush=True)
         await asyncio.sleep(3)

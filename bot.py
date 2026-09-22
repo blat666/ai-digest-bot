@@ -46,7 +46,7 @@ async def run_bot():
 
         dp = Dispatcher()
         scheduler = AsyncIOScheduler()
-        scheduler.add_job(post_news, "interval", minutes=1, args=[bot])
+        scheduler.add_job(post_news, "interval", minutes=60, args=[bot])
         scheduler.start()
         print("Бот запущен и планировщик работает", flush=True)
 

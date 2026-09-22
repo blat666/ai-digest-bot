@@ -29,19 +29,25 @@ async def post_news(bot: Bot):
     news_text = "📰 **Тестовая новость**\n\nЗдесь будет текст."
     try:
         await bot.send_message(CHANNEL_ID, news_text, parse_mode=ParseMode.MARKDOWN)
-        print("Пост отправлен")
+        print("Пост отправлен", flush=True)
     except Exception as e:
-        print(f"Ошибка: {e}")
+        print(f"Ошибка при отправке поста: {e}", flush=True)
 
 async def run_bot():
-    bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    dp = Dispatcher()
-    scheduler = AsyncIOScheduler()
-    # Пост каждые 60 минут. Если нужно чаще — поменяй число.
-    scheduler.add_job(post_news, "interval", minutes=60, args=[bot])
-    scheduler.start()
-    print("Бот запущен")
-    await asyncio.Event().wait()
+    try:
+        print(f"Старт бота. CHANNEL_ID={CHANNEL_ID}", flush=True)
+        bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+        me = await bot.get_me()
+        print(f"Токен действителен, бот авторизован: @{me.username}", flush=True)
+
+        dp = Dispatcher()
+        scheduler = AsyncIOScheduler()
+        scheduler.add_job(post_news, "interval", minutes=60, args=[bot])
+        scheduler.start()
+        print("Бот запущен и планировщик работает", flush=True)
+        await asyncio.Event().wait()
+    except Exception as e:
+        print(f"КРИТИЧЕСКАЯ ОШИБКА при запуске бота: {e}", flush=True)
 
 def start_bot_thread():
     asyncio.run(run_bot())

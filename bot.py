@@ -33,7 +33,7 @@ RSS_FEEDS = {
 # ---- Настройки ----
 MAX_POSTS_PER_RUN = 3
 FRESH_HOURS = 24
-POST_INTERVAL_MINUTES = 60
+POST_INTERVAL_MINUTES = 1
 
 app = Flask(__name__)
 seen_urls = set()

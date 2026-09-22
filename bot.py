@@ -16,13 +16,16 @@ PORT = int(os.environ.get("PORT", 10000))
 
 app = Flask(__name__)
 
+
 @app.route("/")
 def home():
     return "Bot is running"
 
+
 @app.route("/health")
 def health():
     return "OK"
+
 
 async def post_news(bot: Bot):
     # Пока просто тестовый текст. Позже заменим на реальные новости.
@@ -32,6 +35,7 @@ async def post_news(bot: Bot):
         print("Пост отправлен", flush=True)
     except Exception as e:
         print(f"Ошибка при отправке поста: {e}", flush=True)
+
 
 async def run_bot():
     try:
@@ -45,12 +49,18 @@ async def run_bot():
         scheduler.add_job(post_news, "interval", minutes=60, args=[bot])
         scheduler.start()
         print("Бот запущен и планировщик работает", flush=True)
+
+        # Тестовый пост сразу при запуске
+        await post_news(bot)
+
         await asyncio.Event().wait()
     except Exception as e:
         print(f"КРИТИЧЕСКАЯ ОШИБКА при запуске бота: {e}", flush=True)
 
+
 def start_bot_thread():
     asyncio.run(run_bot())
+
 
 if __name__ == "__main__":
     bot_thread = threading.Thread(target=start_bot_thread, daemon=True)

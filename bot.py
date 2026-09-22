@@ -50,8 +50,7 @@ async def run_bot():
         scheduler.start()
         print("Бот запущен и планировщик работает", flush=True)
 
-        # Тестовый пост сразу при запуске
-        await post_news(bot)
+    
 
         await asyncio.Event().wait()
     except Exception as e:
